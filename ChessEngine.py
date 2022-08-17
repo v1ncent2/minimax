@@ -130,7 +130,7 @@ def ai_input(player):
         for b in choices:
             print_board(b)
             print(score(b, 'black'))
-            if score(b, 'white') >= curr_max:
+            if score(b, 'black') >= curr_max:
                 best_choice = b.copy()
                 curr_max = score(b, 'black')
             board = best_choice.copy()
@@ -138,7 +138,7 @@ def ai_input(player):
     else: 
         curr_min = float('inf')
         for b in choices:
-            if score(b, 'black') <= curr_min:
+            if score(b, 'white') <= curr_min:
                 best_choice = b.copy()
                 curr_min = score(b, 'white')
         board = best_choice.copy()

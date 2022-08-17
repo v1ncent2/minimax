@@ -60,7 +60,6 @@ def score_unwrap(b, mark, depth, alpha, beta):
                     choices.append(choice)
         if mark == 1:
             curr_max = -1
-            response = []
             for c in choices:
                 choice_score = score_unwrap(c, -1, depth-1, alpha, beta)
                 curr_max = max(curr_max, choice_score)
@@ -70,7 +69,6 @@ def score_unwrap(b, mark, depth, alpha, beta):
             return curr_max
         else:
             curr_min = 1
-            response = []
             for c in choices:
                 choice_score = score_unwrap(c, 1, depth-1, alpha, beta)
                 curr_min = min(curr_min, choice_score)

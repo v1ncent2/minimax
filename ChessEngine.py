@@ -128,6 +128,8 @@ def ai_input(player):
     if player == 'white':
         curr_max = float('-inf')
         for b in choices:
+            print_board(b)
+            print(score(b, 'black'))
             if score(b, 'white') >= curr_max:
                 best_choice = b.copy()
                 curr_max = score(b, 'black')

@@ -159,4 +159,3 @@ while not (won(board, 1) or won(board, -1) or np.prod(board) != 0):
     user_input(-1)
     time.sleep(1)
     
-while board.outcome

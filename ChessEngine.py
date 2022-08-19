@@ -1,9 +1,8 @@
 from chess import *
 import time
 
-tot = 0
-
 board = Board()
+evals = 0
 
 def print_board(b):
     for i in range(64):
@@ -43,6 +42,8 @@ def print_board(b):
     print('  a b c d e f g h ')
 
 def static_eval(b):
+    global evals
+    evals += 1
     total_score = 0
     for i in range(64):
         match str(b.piece_at(SQUARES[i])):
@@ -71,8 +72,6 @@ def static_eval(b):
     return total_score
 
 def score_unwrap(b, player, depth, alpha, beta):
-    global tot 
-    tot += 1
     if b.is_stalemate() or b.can_claim_threefold_repetition() or \
        b.is_insufficient_material():
         return 0       
@@ -85,14 +84,14 @@ def score_unwrap(b, player, depth, alpha, beta):
         return static_eval(b)
     else:
         choices = []
-        for move in board.legal_moves:
-            choice = board.copy()
+        for move in b.legal_moves:
+            choice = b.copy()
             choice.push(Move.from_uci(str(move)))
             choices.append(choice)
         if player == 'white':
             curr_max = float('-inf')
             for c in choices:
-                choice_score = score_unwrap(c, -1, depth-1, alpha, beta)
+                choice_score = score_unwrap(c, 'black', depth-1, alpha, beta)
                 curr_max = max(curr_max, choice_score)
                 alpha = max(alpha, choice_score)
                 if beta <= alpha:
@@ -101,7 +100,7 @@ def score_unwrap(b, player, depth, alpha, beta):
         else:
             curr_min = float('inf')
             for c in choices: 
-                choice_score = score_unwrap(c, 1, depth-1, alpha, beta)
+                choice_score = score_unwrap(c, 'white', depth-1, alpha, beta)
                 curr_min = min(curr_min, choice_score)
                 beta = min(beta, choice_score)
                 if beta <= alpha:
@@ -109,7 +108,7 @@ def score_unwrap(b, player, depth, alpha, beta):
             return curr_min
 
 def score(b, player):
-    return score_unwrap(b, player, 3, float('-inf'), float('inf'))
+    return score_unwrap(b, player, 1, float('-inf'), float('inf'))
 
 def user_input(player):
     print(board.legal_moves)
@@ -118,6 +117,8 @@ def user_input(player):
 
 def ai_input(player):
     global board
+    global evals
+    evals = 0
     print("My turn...")
     choices = []
     for c in board.legal_moves:
@@ -125,15 +126,14 @@ def ai_input(player):
         choice.push(Move.from_uci(str(c)))
         choices.append(choice)
     best_choice = board.copy()
+    start = time.time()
     if player == 'white':
         curr_max = float('-inf')
         for b in choices:
-            print_board(b)
-            print(score(b, 'black'))
             if score(b, 'black') >= curr_max:
                 best_choice = b.copy()
                 curr_max = score(b, 'black')
-            board = best_choice.copy()
+        board = best_choice.copy()
         print(f'score: {curr_max}')
     else: 
         curr_min = float('inf')
@@ -143,18 +143,20 @@ def ai_input(player):
                 curr_min = score(b, 'white')
         board = best_choice.copy()
         print(f'score: {curr_min}')
+    end = time.time()
+    print(f'decision took {end - start} seconds')
+    print(f'static evaluations: {evals}')
+    print(f'kops: {evals / (1000 * (end - start))}')
+
 
 print_board(board)
 print()
 while True:
-    user_input('white')
+    ai_input('white')
     print_board(board)
     print()
-    ai_input('black')
+    user_input('black')
     print_board(board)
-    print(f'evals: {tot}')
     print()
-
-
 
 

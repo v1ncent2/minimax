@@ -144,7 +144,7 @@ while not (won(board, 1) or won(board, -1) or np.prod(board) != 0):
         print('tie')
         break
     print('score ' + str(score(board, 1)))
-    ai_input(1)
+    user_input(1)
     time.sleep(1)
     print_board(board)
     if won(board,1):
@@ -154,6 +154,6 @@ while not (won(board, 1) or won(board, -1) or np.prod(board) != 0):
         print('tie')
         break
     print('score ' + str(score(board, -1)))
-    user_input(-1)
+    ai_input(-1)
     time.sleep(1)
     

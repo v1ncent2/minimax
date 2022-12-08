@@ -1,5 +1,6 @@
 from chess import *
 import time
+import random
 
 board = Board()
 evals = 0
@@ -41,6 +42,79 @@ def print_board(b):
     print()
     print('  a b c d e f g h ')
 
+start_map = {
+    'P': [  # Pawn
+        0,  0,  0,  0,  0,  0,  0,  0,
+        50, 50, 50, 50, 50, 50, 50, 50,
+        10, 10, 20, 30, 30, 20, 10, 10,
+         5,  5, 10, 25, 25, 10,  5,  5,
+         0,  0,  0, 20, 20,  0,  0,  0,
+         5, -5,-10,  0,  0,-10, -5,  5,
+         5, 10, 10,-20,-20, 10, 10,  5,
+         0,  0,  0,  0,  0,  0,  0,  0
+    ],
+    'N': [  # Knight
+        -50,-40,-30,-30,-30,-30,-40,-50,
+        -40,-20,  0,  0,  0,  0,-20,-40,
+        -30,  0, 10, 15, 15, 10,  0,-30,
+        -30,  5, 15, 20, 20, 15,  5,-30,
+        -30,  0, 15, 20, 20, 15,  0,-30,
+        -30,  5, 10, 15, 15, 10,  5,-30,
+        -40,-20,  0,  5,  5,  0,-20,-40,
+        -50,-40,-30,-30,-30,-30,-40,-50
+    ],
+    'B': [  # Bishop
+        -20,-10,-10,-10,-10,-10,-10,-20,
+        -10,  0,  0,  0,  0,  0,  0,-10,
+        -10,  0,  5, 10, 10,  5,  0,-10,
+        -10,  5,  5, 10, 10,  5,  5,-10,
+        -10,  0, 10, 10, 10, 10,  0,-10,
+        -10, 10, 10, 10, 10, 10, 10,-10,
+        -10,  5,  0,  0,  0,  0,  5,-10,
+        -20,-10,-10,-10,-10,-10,-10,-20
+    ],
+   'R': [  # Rook
+        0,  0,  0,  0,  0,  0,  0,  0,
+         5, 10, 10, 10, 10, 10, 10,  5,
+        -5,  0,  0,  0,  0,  0,  0, -5,
+        -5,  0,  0,  0,  0,  0,  0, -5,
+        -5,  0,  0,  0,  0,  0,  0, -5,
+        -5,  0,  0,  0,  0,  0,  0, -5,
+        -5,  0,  0,  0,  0,  0,  0, -5,
+         0,  0,  0,  5,  5,  0,  0,  0
+    ],
+    'Q': [  # Queen
+        -20,-10,-10, -5, -5,-10,-10,-20,
+        -10,  0,  0,  0,  0,  0,  0,-10,
+        -10,  0,  5,  5,  5,  5,  0,-10,
+         -5,  0,  5,  5,  5,  5,  0, -5,
+          0,  0,  5,  5,  5,  5,  0, -5,
+        -10,  5,  5,  5,  5,  5,  0,-10,
+        -10,  0,  5,  0,  0,  0,  0,-10,
+        -20,-10,-10, -5, -5,-10,-10,-20
+    ],
+    'K': [  # King
+        -30,-40,-40,-50,-50,-40,-40,-30,
+        -30,-40,-40,-50,-50,-40,-40,-30,
+        -30,-40,-40,-50,-50,-40,-40,-30,
+        -30,-40,-40,-50,-50,-40,-40,-30,
+        -20,-30,-30,-40,-40,-30,-30,-20,
+        -10,-20,-20,-20,-20,-20,-20,-10,
+         20, 20,  0,  0,  0,  0, 20, 20,
+         20, 30, 10,  0,  0, 10, 30, 20
+    ]
+}
+
+heat_map = {}
+
+for i in start_map:
+    heat_map[i] = start_map[i]
+    rev_map = start_map[i].copy()
+    rev_map.reverse()
+    heat_map[i.lower()] = rev_map
+
+print(heat_map)
+
 def static_eval(b):
     global evals
     evals += 1
@@ -48,28 +122,40 @@ def static_eval(b):
     for i in range(64):
         match str(b.piece_at(SQUARES[i])):
             case 'R':
-                total_score += 5
+                total_score += 500
+                total_score += heat_map['R'][i]
             case 'N':
-                total_score += 3
+                total_score += 300
+                total_score += heat_map['N'][i]
             case 'B':
-                total_score += 3
+                total_score += 300
+                total_score += heat_map['B'][i]
             case 'Q':
-                total_score += 9
+                total_score += 900
+                total_score += heat_map['Q'][i]
             case 'P':
-                total_score += 1
+                total_score += 100
+                total_score += heat_map['p'][i]
             case 'r':
-                total_score -= 5
+                total_score -= 500
+                total_score += heat_map['r'][i]
             case 'n':
-                total_score -= 3
+                total_score -= 300
+                total_score += heat_map['n'][i]
             case 'b':
-                total_score -= 3
+                total_score -= 300
+                total_score += heat_map['b'][i]
             case 'q':
-                total_score -= 9
+                total_score -= 900
+                total_score += heat_map['q'][i]
             case 'p':
-                total_score -= 1
+                total_score -= 100
+                total_score += heat_map['p'][i]
             case default:
                 total_score += 0
     return total_score
+
+
 
 def score_unwrap(b, player, depth, alpha, beta):
     if b.is_stalemate() or b.can_claim_threefold_repetition() or \
@@ -83,37 +169,39 @@ def score_unwrap(b, player, depth, alpha, beta):
     elif (depth == 0):
         return static_eval(b)
     else:
-        choices = []
-        for move in b.legal_moves:
-            choice = b.copy()
-            choice.push(Move.from_uci(str(move)))
-            choices.append(choice)
         if player == 'white':
             curr_max = float('-inf')
-            for c in choices:
-                choice_score = score_unwrap(c, 'black', depth-1, alpha, beta)
+            for move in b.legal_moves:
+                b.push(Move.from_uci(str(move)))
+                choice_score = score_unwrap(b, 'black', depth-1, alpha, beta)
                 curr_max = max(curr_max, choice_score)
                 alpha = max(alpha, choice_score)
                 if beta <= alpha:
+                    b.pop()
                     break
+                b.pop()
             return curr_max
         else:
             curr_min = float('inf')
-            for c in choices: 
-                choice_score = score_unwrap(c, 'white', depth-1, alpha, beta)
+            for move in b.legal_moves:
+                b.push(Move.from_uci(str(move)))
+                choice_score = score_unwrap(b, 'white', depth-1, alpha, beta)
                 curr_min = min(curr_min, choice_score)
                 beta = min(beta, choice_score)
                 if beta <= alpha:
+                    b.pop()
                     break
+                b.pop()
             return curr_min
 
 def score(b, player):
-    return score_unwrap(b, player, 1, float('-inf'), float('inf'))
+    return score_unwrap(b, player, 3, float('-inf'), float('inf'))
 
 def user_input(player):
-    print(board.legal_moves)
-    uinput = input('Enter: ')
-    board.push_san(str(uinput))   
+    choices = []
+    for move in board.legal_moves:
+        choices.append(move)
+    print(choices)
 
 def ai_input(player):
     global board
@@ -130,17 +218,19 @@ def ai_input(player):
     if player == 'white':
         curr_max = float('-inf')
         for b in choices:
-            if score(b, 'black') >= curr_max:
+            curr_score = score(b, 'black')
+            if curr_score >= curr_max:
                 best_choice = b.copy()
-                curr_max = score(b, 'black')
+                curr_max = curr_score
         board = best_choice.copy()
         print(f'score: {curr_max}')
     else: 
         curr_min = float('inf')
         for b in choices:
-            if score(b, 'white') <= curr_min:
+            curr_score = score(b, 'white')
+            if curr_score <= curr_min:
                 best_choice = b.copy()
-                curr_min = score(b, 'white')
+                curr_min = curr_score
         board = best_choice.copy()
         print(f'score: {curr_min}')
     end = time.time()
@@ -155,7 +245,7 @@ while True:
     ai_input('white')
     print_board(board)
     print()
-    user_input('black')
+    ai_input('black')
     print_board(board)
     print()
 

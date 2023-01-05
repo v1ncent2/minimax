@@ -113,8 +113,6 @@ for i in start_map:
     rev_map.reverse()
     heat_map[i.lower()] = rev_map
 
-print(heat_map)
-
 def static_eval(b):
     global evals
     evals += 1
@@ -138,19 +136,19 @@ def static_eval(b):
                 total_score += heat_map['p'][i]
             case 'r':
                 total_score -= 500
-                total_score += heat_map['r'][i]
+                total_score -= heat_map['r'][i]
             case 'n':
                 total_score -= 300
-                total_score += heat_map['n'][i]
+                total_score -= heat_map['n'][i]
             case 'b':
                 total_score -= 300
-                total_score += heat_map['b'][i]
+                total_score -= heat_map['b'][i]
             case 'q':
                 total_score -= 900
-                total_score += heat_map['q'][i]
+                total_score -= heat_map['q'][i]
             case 'p':
                 total_score -= 100
-                total_score += heat_map['p'][i]
+                total_score -= heat_map['p'][i]
             case default:
                 total_score += 0
     return total_score
@@ -202,6 +200,13 @@ def user_input(player):
     for move in board.legal_moves:
         choices.append(move)
     print(choices)
+    my_move = input("Enter your move: ")
+    try:
+        board.push(Move.from_uci(my_move))
+    except:
+        print("Invalid choice. ")
+        user_input(player)
+
 
 def ai_input(player):
     global board
@@ -245,7 +250,7 @@ while True:
     ai_input('white')
     print_board(board)
     print()
-    ai_input('black')
+    user_input('black')
     print_board(board)
     print()
 

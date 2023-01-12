@@ -2,8 +2,17 @@ from chess import *
 import time
 import random
 
+# create board object
 board = Board()
+
+# keeps track of how many times eval function is called
 evals = 0
+
+# increase MAX_DEPTH to increase depth of search (slower performance)
+MAX_DEPTH = 3
+
+# REQUIRES: b is a valid board object
+# ENSURES:  prints the 8 x 8 board correctly with unicode symbols
 
 def print_board(b):
     for i in range(64):
@@ -42,6 +51,7 @@ def print_board(b):
     print()
     print('  a b c d e f g h ')
 
+# heat map structure
 start_map = {
     'P': [  # Pawn
         0,  0,  0,  0,  0,  0,  0,  0,
@@ -107,11 +117,18 @@ start_map = {
 
 heat_map = {}
 
+# mirrors heat map for black
 for i in start_map:
     heat_map[i] = start_map[i]
     rev_map = start_map[i].copy()
     rev_map.reverse()
     heat_map[i.lower()] = rev_map
+
+# evaluates board structure using both heat map and piece value 
+# (divide by 100 for standard chess evaluation)
+#
+# REQUIRES: b is a valid board object
+# ENSURES:  returns the correct board evaluation
 
 def static_eval(b):
     global evals
@@ -153,8 +170,7 @@ def static_eval(b):
                 total_score += 0
     return total_score
 
-
-
+# alpha beta pruning is used here, this is a wrapper function for score
 def score_unwrap(b, player, depth, alpha, beta):
     if b.is_stalemate() or b.can_claim_threefold_repetition() or \
        b.is_insufficient_material():
@@ -193,8 +209,9 @@ def score_unwrap(b, player, depth, alpha, beta):
             return curr_min
 
 def score(b, player):
-    return score_unwrap(b, player, 3, float('-inf'), float('inf'))
+    return score_unwrap(b, player, MAX_DEPTH, float('-inf'), float('inf'))
 
+# makes sure input is in the uci format
 def user_input(player):
     choices = []
     for move in board.legal_moves:
@@ -207,7 +224,7 @@ def user_input(player):
         print("Invalid choice. ")
         user_input(player)
 
-
+# generates all choices and scores them, picks the one with the highest score
 def ai_input(player):
     global board
     global evals
@@ -246,10 +263,14 @@ def ai_input(player):
 
 print_board(board)
 print()
+
+# main loop
 while True:
+    #change to user_input('white') to have user play white
     ai_input('white')
     print_board(board)
     print()
+    #change to ai_input('black') to have ai play black
     user_input('black')
     print_board(board)
     print()
